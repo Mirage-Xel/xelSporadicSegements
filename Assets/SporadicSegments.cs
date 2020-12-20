@@ -50,7 +50,7 @@ public class SporadicSegments : MonoBehaviour {
         }
         module.OnActivate += delegate { GenerateModule(); };
     }
-    // Use this for initialization
+    // I'll give you one guess why this comment is here.
     void GenerateModule()
     {
         digitSequence = Enumerable.Range(0, 10).ToList().Shuffle().Take(7).ToList();
@@ -153,7 +153,7 @@ public class SporadicSegments : MonoBehaviour {
         new bool[] {true, true, false, true, false, true, true},
         };
         int textPointer = 0;
-        string[] fluff = new string[] { "SPORADIC", "SEGEMENTS", "MODULE", "BY", "PANOPTES", "BETA", "TESTING", "BY", "GHOSTSALT", "SOME", "CODE", "BY", "VFLYER", "THANKS", "FOR", "PLAYING"};
+        string[] fluff = new string[] { "SPORADIC", "SEGEMENTS", "MODULE", "BY", "PANOPTES", "BETA", "TESTING", "BY", "EXISH", "SOME", "CODE", "BY", "VFLYER", "THANKS", "FOR", "PLAYING"};
         for (int i = 0; i < 15; i++)
         {
             yield return new WaitForSeconds(0.1f);
