@@ -16,9 +16,9 @@ MonoBehaviour:
   author: PANOPTES
   description: "This appears to be a cross between a GameBoy and a digital clock,
     except the GameBoy only has one game, and the clock... \n\nSporadic Segments module
-    by PANOPTES version 1.0.\n\nFont is Clandesdyne Pixelated Digital Clock, by Clandesdyne.\n\nModule
+    by PANOPTES version 1.00.\n\nFont is Clandesdyne Pixelated Digital Clock, by Clandesdyne.\n\nModule
     ID: xelSporadicSegments\n\nGithub Repo: https://github.com/Mirage-Xel/xelSporadicSegements\n\nHolding
     off on making TP support, as it's not essential and I want to put time into it."
-  version: 1.0
+  version: 1.00
   outputFolder: build
   previewImage: {fileID: 2800000, guid: f883fed844dc20746b9c25bce0d155d3, type: 3}
