@@ -27,8 +27,7 @@ public class SporadicSegments : MonoBehaviour
     };
     List<int> digitSequence;
     int digitPointer;
-    int[] segementNumbers = new int[7];
-    int[] validDigits = new int[7];
+    int[] segmentNumbers = new int[7];
     bool[,] bitmasks = new bool[7, 10];
     bool[] segmentsPressed = new bool[7];
     int lastDigit;
@@ -37,6 +36,7 @@ public class SporadicSegments : MonoBehaviour
     public KMAudio sound;
     int moduleId;
     static int moduleIdCounter = 1;
+    int[] loggingChecker = new int[7];
     bool solved;
 
     void Awake()
@@ -61,34 +61,28 @@ public class SporadicSegments : MonoBehaviour
             {
                 if (rnd.Range(0, 2) == 1)
                 {
-                    segementNumbers[i] += (int)Math.Pow(2, j);
+                    segmentNumbers[i] += (int)Math.Pow(2, j);
                     bitmasks[i, j] = true;
                 }
             }
         }
-        int output = 0;
         StartCoroutine(DisplayFlash());
         for (int i = 0; i < 7; i++)
         {
-            output = segementNumbers[i] % 10;
-            while (!digitSequence.Contains(output))
-            {
-                output++;
-                output %= 10;
-            }
-            validDigits[i] = output;
+            int x = i;
+            loggingChecker[x] = (digitSequence[x] + segmentNumbers[x]) % 10;
         }
-        Debug.LogFormat("[Sporadic Segments #{0}] The digit sequence is {1}.", moduleId, digitSequence.Join(","));
-        Debug.LogFormat("[Sporadic Segments #{0}] The values of the segments are {1}.", moduleId, segementNumbers.Join(","));
-        Debug.LogFormat("[Sporadic Segments #{0}] The sequence digits when the segments should be preesed, in order, are {1}.", moduleId, validDigits.Join(","));
+        Debug.LogFormat("[Sporadic Segments #{0}] The digit sequence is {1}.", moduleId, digitSequence.Join(", "));
+        Debug.LogFormat("[Sporadic Segments #{0}] The values of the segments are {1}.", moduleId, segmentNumbers.Join(", "));
+        Debug.LogFormat("[Sporadic Segments #{0}] The last digits when the segments should be pressed, in reading order, are {1}.", moduleId, loggingChecker.Join(", "));
     }
 
     void PressSegement(int index)
     {
         if (!solved)
         {
-            Debug.LogFormat("[Sporadic Segments #{0}] You pressed segement {1} at {2}, when the display was showing {3}.", moduleId, index + 1, bomb.GetFormattedTime(), digitSequence[digitPointer]);
-            if ((lastDigit == digitSequence[index] && digitSequence[digitPointer] == validDigits[index] && !segmentsPressed[index]))
+            Debug.LogFormat("[Sporadic Segments #{0}] You pressed segment {1} at {2}.", moduleId, index + 1, bomb.GetFormattedTime());
+            if (lastDigit == loggingChecker[index])
             {
                 segmentsPressed[index] = true;
                 sound.PlaySoundAtTransform("Bweep", transform);
@@ -155,13 +149,14 @@ public class SporadicSegments : MonoBehaviour
         new bool[] {true, true, false, true, false, true, true},
         };
         int textPointer = 0;
-        string[] fluff = new string[] { "SPORADIC", "SEGEMENTS", "MODULE", "BY", "PANOPTES", "BETA", "TESTING", "BY", "EXISH", "SOME", "CODE", "BY", "VFLYER", "THANKS", "FOR", "PLAYING" };
-        for (int i = 0; i < 15; i++)
+        string[] fluff = new string[] { "SPORADIC", "SEGEMENTS", "MODULE", "BY", "PANOPTES", "BETA", "TESTING", "BY", "EXISH", "SOME", "CODE", "BY", "VFLYER", "AND", "ELTRICK", "THANKS", "FOR", "PLAYING" };
+        for (int i = 0; i < 17; i++)
         {
             yield return new WaitForSeconds(0.1f);
             for (int j = 0; j < 7; j++)
             {
-                segments[j].enabled = digits[i][j];
+                if (i < 15)
+                    segments[j].enabled = digits[i][j];
             }
             digitPointer++;
             StartCoroutine(TypeText(texts[0], fluff[textPointer]));
@@ -182,113 +177,28 @@ public class SporadicSegments : MonoBehaviour
         yield break;
     }
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} press <segment> at <#> <#> [Presses the specified segment when the last digit of the bomb's timer is the first number and the digit on the display is the second number] | Valid segments are T, TL, TR, M, BL, BR and B.";
+    private readonly string TwitchHelpMessage = @"!{0} press <segment> at <#> [Presses segment <segment> when the last digit of the timer is <#>] | Valid segments are T, TL, TR, M, BL, BR and B.";
 #pragma warning restore 414
     IEnumerator ProcessTwitchCommand(string command)
     {
-        string[] parameters = command.Split(' ');
+        string[] parameters = command.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         string[] segmentNames = new string[] { "t", "tl", "tr", "m", "bl", "br", "b" };
-        if (Regex.IsMatch(parameters[0], @"^\s*press\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+        if (parameters[0] == "press")
         {
-            yield return null;
-            if (parameters.Length > 5)
+            if (parameters[1] == "t" || parameters[1] == "tl" || parameters[1] == "tr" || parameters[1] == "m" || parameters[1] == "bl" || parameters[1] == "br" || parameters[1] == "b")
             {
-                yield return "sendtochaterror Too many parameters!";
-            }
-            else if (parameters.Length == 5)
-            {
-                if (segmentNames.Contains(parameters[1].ToLower()) && parameters[2].ToLower().Equals("at"))
+                int timerDigit = 0;
+                if (int.TryParse(parameters[3], out timerDigit))
                 {
-                    int digit = 0;
-                    int display = 0;
-                    if (int.TryParse(parameters[3], out digit))
-                    {
-                        if (digit < 0 || digit > 9)
-                        {
-                            yield return "sendtochaterror The specified time to press the " + parameters[1] + " segment '" + parameters[3] + "' is out of range 0-9!";
-                            yield break;
-                        }
-                        if (segmentsPressed[Array.IndexOf(segmentNames, parameters[1].ToLower())])
-                        {
-                            yield return "sendtochaterror The " + parameters[1] + " segment has already been pressed!";
-                            yield break;
-                        }
-                        if (int.TryParse(parameters[4], out display))
-                        {
-                            if (digit < 0 || digit > 9)
-                            {
-                                yield return "sendtochaterror The specified display digit to press the " + parameters[1] + " segment '" + parameters[4] + "' is out of range 0-9!";
-                                yield break;
-                            }
-                            if (segmentsPressed[Array.IndexOf(segmentNames, parameters[1].ToLower())])
-                            {
-                                yield return "sendtochaterror The " + parameters[1] + " segment has already been pressed!";
-                                yield break;
-                            }
-                            while ((int)bomb.GetTime() % 10 != digit || digitSequence[digitPointer] != display) { yield return "trycancel Halted waiting to press due to a request to cancel!"; }
-                            selectables[Array.IndexOf(segmentNames, parameters[1].ToLower())].OnInteract();
-                        }
-                        else
-                        {
-                            yield return "sendtochaterror The specified display digit to press the " + parameters[1] + " segment '" + parameters[4] + "' is invalid!";
-                        }
-                    }
-
-                    else if (segmentNames.Contains(parameters[1].ToLower()) && !parameters[2].ToLower().Equals("at"))
-                    {
-                        yield return "sendtochaterror Invalid command format! Expected 'at' but received '" + parameters[2] + "'!";
-                    }
-                    else
-                    {
-                        yield return "sendtochaterror The specified glyph '" + parameters[1] + "' is invalid!";
-                    }
+                    yield return null;
+                    while ((int)bomb.GetTime() % 10 != timerDigit && (bomb.GetTime() % 10 - (int)bomb.GetTime() % 10) > 0.8f)
+                        yield return new WaitForSeconds(0.1f);
+                    selectables[Array.IndexOf(segmentNames, parameters[1])].OnInteract();
                 }
-                else if (parameters.Length == 4)
+                else
                 {
-                    if (segmentNames.Contains(parameters[1].ToLower()) && parameters[2].ToLower().Equals("at"))
-                    {
-                        yield return "sendtochaterror Please specify at what display digit to press the " + parameters[1] + " segment!";
-                    }
-                    else if (segmentNames.Contains(parameters[1].ToLower()) && !parameters[2].ToLower().Equals("at"))
-                    {
-                        yield return "sendtochaterror Invalid command format! Expected 'at' but received '" + parameters[2] + "'!";
-                    }
-                    else
-                    {
-                        yield return "sendtochaterror The specified segment '" + parameters[1] + "' is invalid!";
-                    }
+                    yield return "sendtochaterror The timer digit to press is not a digit. Please try again.";
                 }
-                else if (parameters.Length == 3)
-                {
-                    if (segmentNames.Contains(parameters[1].ToLower()) && parameters[2].ToLower().Equals("at"))
-                    {
-                        yield return "sendtochaterror Please specify when to press the " + parameters[1] + " segment!";
-                    }
-                    else if (segmentNames.Contains(parameters[1].ToLower()) && !parameters[2].ToLower().Equals("at"))
-                    {
-                        yield return "sendtochaterror Invalid command format! Expected 'at' but received '" + parameters[2] + "'!";
-                    }
-                    else
-                    {
-                        yield return "sendtochaterror The specified segment '" + parameters[1] + "' is invalid!";
-                    }
-                }
-                else if (parameters.Length == 2)
-                {
-                    if (segmentNames.Contains(parameters[1].ToLower()))
-                    {
-                        yield return "sendtochaterror Please specify when to press the " + parameters[1] + " segment!";
-                    }
-                    else
-                    {
-                        yield return "sendtochaterror The specified segment '" + parameters[1] + "' is invalid!";
-                    }
-                }
-                else if (parameters.Length == 1)
-                {
-                    yield return "sendtochaterror Please specify which segment to press and when to press it!";
-                }
-                yield break;
             }
         }
     }
