@@ -18,6 +18,6 @@ MonoBehaviour:
     except the GameBoy only has one game, and the clock... \n\nSporadic Segments module
     by PANOPTES version 1.00.\n\nFont is Clandesdyne Pixelated Digital Clock, by Clandesdyne.\n\nModule
     ID: xelSporadicSegments\n\nGithub Repo: https://github.com/Mirage-Xel/xelSporadicSegements"
-  version: 1.12
+  version: 1.13
   outputFolder: build
   previewImage: {fileID: 2800000, guid: f883fed844dc20746b9c25bce0d155d3, type: 3}

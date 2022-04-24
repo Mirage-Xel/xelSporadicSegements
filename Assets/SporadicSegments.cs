@@ -190,9 +190,9 @@ public class SporadicSegments : MonoBehaviour
                 int timerDigit = 0;
                 if (int.TryParse(parameters[3], out timerDigit))
                 {
-                    yield return null;
                     while ((int)bomb.GetTime() % 10 != timerDigit && (bomb.GetTime() % 10 - (int)bomb.GetTime() % 10) > 0.8f)
                         yield return new WaitForSeconds(0.1f);
+                    yield return null;
                     selectables[Array.IndexOf(segmentNames, parameters[1])].OnInteract();
                 }
                 else
