@@ -149,7 +149,7 @@ public class SporadicSegments : MonoBehaviour
         new bool[] {true, true, false, true, false, true, true},
         };
         int textPointer = 0;
-        string[] fluff = new string[] { "SPORADIC", "SEGEMENTS", "MODULE", "BY", "PANOPTES", "BETA", "TESTING", "BY", "EXISH", "SOME", "CODE", "BY", "VFLYER", "AND", "ELTRICK", "THANKS", "FOR", "PLAYING" };
+        string[] fluff = new string[] { "SPORADIC", "SEGMENTS", "MODULE", "BY", "PANOPTES", "BETA", "TESTING", "BY", "EXISH", "SOME", "CODE", "BY", "VFLYER", "AND", "ELTRICK", "THANKS", "FOR", "PLAYING" };
         for (int i = 0; i < 17; i++)
         {
             yield return new WaitForSeconds(0.1f);
@@ -183,13 +183,18 @@ public class SporadicSegments : MonoBehaviour
     {
         string[] parameters = command.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         string[] segmentNames = new string[] { "t", "tl", "tr", "m", "bl", "br", "b" };
-        if (parameters[0] == "press")
+        if (parameters.Length == 4)
         {
-            if (parameters[1] == "t" || parameters[1] == "tl" || parameters[1] == "tr" || parameters[1] == "m" || parameters[1] == "bl" || parameters[1] == "br" || parameters[1] == "b")
+            if (parameters[0] == "press" && (parameters[1] == "t" || parameters[1] == "tl" || parameters[1] == "tr" || parameters[1] == "m" || parameters[1] == "bl" || parameters[1] == "br" || parameters[1] == "b") && parameters[2] == "at")
             {
                 int timerDigit = 0;
                 if (int.TryParse(parameters[3], out timerDigit))
                 {
+                    yield return null;
+                    while ((int)bomb.GetTime() % 10 == timerDigit)
+                        yield return "trycancel Halted waiting to press due to a request to cancel!";
+                    while ((int)bomb.GetTime() % 10 != timerDigit)
+                        yield return "trycancel Halted waiting to press due to a request to cancel!";
                     while ((int)bomb.GetTime() % 10 != timerDigit && (bomb.GetTime() % 10 - (int)bomb.GetTime() % 10) > 0.8f)
                         yield return new WaitForSeconds(0.1f);
                     yield return null;
@@ -200,6 +205,31 @@ public class SporadicSegments : MonoBehaviour
                     yield return "sendtochaterror The timer digit to press is not a digit. Please try again.";
                 }
             }
+        }
+    }
+
+    IEnumerator TwitchHandleForcedSolve()
+    {
+        while (true)
+        {
+            int check = lastDigit;
+            for (int i = 0; i < 7; i++)
+            {
+                if (!segmentsPressed[i] && loggingChecker[i] == check)
+                {
+                    selectables[i].OnInteract();
+                    yield return new WaitForSeconds(0.1f);
+                    if (lastDigit != check)
+                    {
+                        check = lastDigit;
+                        i = 0;
+                    }
+                }
+            }
+            if (segmentsPressed.Contains(false))
+                yield return true;
+            else
+                break;
         }
     }
 }
